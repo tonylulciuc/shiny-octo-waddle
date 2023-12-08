@@ -1,5 +1,7 @@
 Simple lightweight file server
 
+Create `.env` file in root and add env variables bellow
+
 ## Environment variables
 |                Env Var | Description                                        | Example Value          |
 | ---------------------: | :------------------------------------------------- | :--------------------- |
