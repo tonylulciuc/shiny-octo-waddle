@@ -11,7 +11,7 @@ from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
 
 # Environment variables
 API_USERS = [x.split(':') for x in os.getenv('API_USERS').split(',')]
-USER_DISKS = [x.split(':') for x in os.getenv('USER_DISKS').split(',')]
+SERVER_VOLUMNS = [x.split(':') for x in os.getenv('SERVER_VOLUMNS').split(',')]
 PORT = os.getenv('SERVER_PORT')
 DEBUG = os.getenv('DEBUG') == 'true'
 
@@ -83,7 +83,7 @@ def get_user_volumns():
     user = whoami()
     disks = []
 
-    for [account, disk] in USER_DISKS:
+    for [account, disk] in SERVER_VOLUMNS:
         if user == account:
             disks.append(disk)
     
