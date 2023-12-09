@@ -7,6 +7,7 @@ import { useRecoilValue } from "recoil";
 import { debounce } from "ts-debounce";
 import { searchState, storageSpaceState } from "../AppBar/AppBar";
 import FileListItem from "../FileListItem/FileListItem";
+import { uploadingState } from "../FileUploadModal/FileUploadModal";
 
 
 export const ZebraFileList = styled(FixedSizeList)(({ theme }: any) => ({
@@ -37,6 +38,7 @@ export default function DirectoryTree() {
     const { used_space } = useRecoilValue(storageSpaceState);
     const search = useRecoilValue(searchState);
     const [filteredData, setFilteredData] = useState([]);
+    const uploading = useRecoilValue(uploadingState);
     const applyFilter = useCallback(
         debounce((files, find: string) => setFilteredData(files.filter((file: string) => file.toLocaleLowerCase().includes(find ?? ''))), 300),
         [setFilteredData]
@@ -53,13 +55,13 @@ export default function DirectoryTree() {
 
 
     useEffect(() => {
-        if (used_space === 0) {
+        if (used_space === 0 || uploading) {
             return;
         }
 
         reload()
-            .catch();
-    }, [used_space, reload]);
+            .catch((e) => {});
+    }, [used_space, reload, uploading]);
 
     if (loading) {
         return (

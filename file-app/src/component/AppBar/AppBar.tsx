@@ -15,10 +15,10 @@ import { alpha, styled } from '@mui/material/styles';
 import useAxios from 'axios-hooks';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { atom, useRecoilState } from 'recoil';
+import { atom, useRecoilState, useRecoilValue } from 'recoil';
 import { useAuth } from '../Auth/AuthProvider';
 import { useToggle } from '@uidotdev/usehooks';
-import FileUploadModal from '../FileUploadModal/FileUploadModal';
+import FileUploadModal, { uploadingState } from '../FileUploadModal/FileUploadModal';
 
 type StorageSpace = {
  total_space: number;
@@ -118,7 +118,8 @@ export default function PrimarySearchAppBar() {
     setAnchorEl(event.currentTarget);
   };
   const [openFileUpload, toggleFileUpload] = useToggle(false);
-
+  const uploading = useRecoilValue(uploadingState);
+  
   const handleMobileMenuClose = () => {
     setMobileMoreAnchorEl(null);
   };
@@ -201,6 +202,10 @@ export default function PrimarySearchAppBar() {
   );
 
   useEffect(() => {
+    if (uploading) {
+      return;
+    }
+
     const intervalId = setInterval(() => {
       executeStorageSpace().then(({ data }) => setStorageSpace(data)).catch(() => {})
     }, 2000);
@@ -208,7 +213,7 @@ export default function PrimarySearchAppBar() {
     return () => {
       clearInterval(intervalId);
     };
-  }, [executeStorageSpace, setStorageSpace]);
+  }, [executeStorageSpace, setStorageSpace, uploading]);
 
 
   useEffect(() => {

@@ -5,6 +5,14 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { ListChildComponentProps } from "react-window";
 import { ZebraFileList } from "../DirectoryTree/DirectoryTree";
 import ProgressModal from "../ProgressModal/ProgressModal";
+import { atom, useRecoilState, useRecoilValue } from "recoil";
+
+
+
+export const uploadingState = atom<boolean>({
+    key: 'uploadingState',
+    default: false
+});
 
 interface FileUploadProps {
     open: boolean;
@@ -31,7 +39,7 @@ export default function FileUploadModal(props: FileUploadProps) {
     const files = useRef(fileList ? [...Array.from(fileList)] : []);
     const [progressModalOpen, toggleProgressModalOpen] = useToggle(false);
     const progress = useRef<number>(0);
-
+    const [, setUploading] = useRecoilState(uploadingState);
     const [, executeFileUpload] = useAxios({
         url: '/upload2',
         method: 'POST',
@@ -52,7 +60,7 @@ export default function FileUploadModal(props: FileUploadProps) {
             result.resolve = resolve;
             result.reject = reject;
         });
-        const chunkSize = 15 * 1024 * 1024; // 15 MB
+        const chunkSize = 5 * 1024 * 1024; // 5 MB
         const totalChunksForFile = Math.ceil(file.size / chunkSize);
         const chunkProgress = 100 / totalChunksForFile;
         const oneChunk = (100 / files.current.length) * (1 / totalChunksForFile);
@@ -144,7 +152,13 @@ export default function FileUploadModal(props: FileUploadProps) {
                         <ButtonGroup fullWidth>
                             <Button
                                 disabled={files.current.length === 0}
-                                onClick={handleUploadClick}>
+                                onClick={() => {
+                                    setUploading(true);
+                                    handleUploadClick()
+                                        .then(() => setUploading(false))
+                                        .catch(() => setUploading(false));
+
+                                }}>
                                 Upload
                             </Button>
                             <Button
