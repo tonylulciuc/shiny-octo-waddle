@@ -52,7 +52,7 @@ export default function FileUploadModal(props: FileUploadProps) {
             result.resolve = resolve;
             result.reject = reject;
         });
-        const chunkSize = 1 * 1024 * 1024; // 1 MB
+        const chunkSize = 15 * 1024 * 1024; // 15 MB
         const totalChunksForFile = Math.ceil(file.size / chunkSize);
         const chunkProgress = 100 / totalChunksForFile;
         const oneChunk = (100 / files.current.length) * (1 / totalChunksForFile);
