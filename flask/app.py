@@ -5,6 +5,7 @@ import json
 import shutil
 from flask_cors import CORS
 from flask import Flask, request, jsonify, send_file
+from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta, timezone
 from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
                                unset_jwt_cookies, jwt_required, JWTManager, decode_token
@@ -74,20 +75,19 @@ def refresh_expiring_jwts(response):
                 response.data = json.dumps(data)
         return response
     except (RuntimeError, KeyError):
-        # Case where there is not a valid JWT. Just return the original respone
         return response
 
 # File managment 
 
 def get_user_volumns(): 
     user = whoami()
-    disks = []
+    volumns = []
 
-    for [account, disk] in SERVER_VOLUMNS:
+    for [account, volumn] in SERVER_VOLUMNS:
         if user == account:
-            disks.append(disk)
+            volumns.append(volumn)
     
-    return disks
+    return volumns
 
 def get_files():
     volumns = get_user_volumns()
@@ -110,7 +110,6 @@ def get_files():
 def query_dir_all():
     files, files_with_volumns = get_files()
 
-    print(files)
     return jsonify(files)
 
 
@@ -179,6 +178,42 @@ def find_volumn_with_space(size):
     return None
 
 
+
+@app.route('/upload2', methods=['POST']) 
+@jwt_required()
+def upload2():
+    file = request.files['file']
+    form = request.form
+    original_size = int(form['originalSize'])
+    current_chunk = int(form['chunkNumber'])
+    total_chunks = int(form['totalChunks'])
+    chunk_offset = int(form['chunkOffset'])
+    original_name = form['originalName']
+    volumn = find_volumn_with_space(original_size)
+
+    if volumn is None:
+        return 'No more memory, please free space or add more storage', 507
+
+    file_path = os.path.join(volumn, secure_filename(original_name))
+    print(file_path)
+
+    if os.path.exists(file_path) and current_chunk == 0:
+        return { 'msg': 'File already exists' }, 400
+
+    try:
+        with open(file_path, 'ab') as f:
+            f.seek(chunk_offset)
+            f.write(file.stream.read())
+    except OSError:
+        return { 'msg': 'Failed to write chunk' }, 500
+
+    if current_chunk + 1 == total_chunks:
+        if os.path.getsize(file_path) != original_size:
+            return { 'msg': 'Size mismatch' }, 500
+
+
+    return { 'msg': 'OK' }, 200
+
 @app.route('/upload', methods=['POST']) 
 @jwt_required()
 def upload_files():
@@ -191,7 +226,6 @@ def upload_files():
         if volumn is None:
             failed_to_save.append(file.filename)
         else:
-            # print(f"{volumn}/{file.filename}")
             file.save(f"{volumn}/{file.filename}") 
 
     if len(failed_to_save) > 0:

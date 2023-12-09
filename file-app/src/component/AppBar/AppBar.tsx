@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react';
 import { atom, useRecoilState } from 'recoil';
 import { useAuth } from '../Auth/AuthProvider';
 import { useToggle } from '@uidotdev/usehooks';
-import FileUpload from '../FileUpload/FileUpload';
+import FileUploadModal from '../FileUploadModal/FileUploadModal';
 
 type StorageSpace = {
  total_space: number;
@@ -261,12 +261,12 @@ export default function PrimarySearchAppBar() {
               placeholder="Search…"
               inputProps={{ 'aria-label': 'search' }}
               onChange={(e) => setSearch(e.target?.value ?? null)}
-              value={searchValue}
+              value={searchValue ?? ''}
             />
           </Search>
           <Tooltip title={memoryTooltipTitle}>
             <Box sx={{ display: 'flex' }}>
-              <BorderLinearProgress variant="determinate" value={storageSpace.percent_used} />
+              <BorderLinearProgress variant="determinate" value={Number(storageSpace.percent_used)} />
               <span style={{ width: 8 }} />
               <Typography>{storageSpace.percent_used}%</Typography>
             </Box>
@@ -310,7 +310,7 @@ export default function PrimarySearchAppBar() {
       </AppBar>
       {renderMobileMenu}
       {renderMenu}
-      {openFileUpload && <FileUpload onClose={toggleFileUpload} />}
+      <FileUploadModal open={openFileUpload} onClose={toggleFileUpload} />
     </Box>
   );
 }

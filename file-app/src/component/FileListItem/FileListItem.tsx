@@ -1,11 +1,12 @@
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import DownloadForOfflineIcon from '@mui/icons-material/DownloadForOffline';
-import { Box, Card, IconButton, LinearProgress, ListItem, Modal, Tooltip, Typography } from "@mui/material";
+import { Checkbox, IconButton, ListItem, Tooltip, Typography } from "@mui/material";
 import { useToggle } from '@uidotdev/usehooks';
 import useAxios from 'axios-hooks';
 import { useState } from 'react';
-import { BorderLinearProgress } from '../AppBar/AppBar';
-
+import ProgressModal from '../ProgressModal/ProgressModal';
+import { green, grey, red } from '@mui/material/colors';
+import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 
 
 
@@ -29,7 +30,9 @@ export default function FileListItem({ file }: FileListItemProps) {
     });
     const [open, toggle] = useToggle(false);
     const [percentCompleted, setPercentCompleted] = useState(0.0);
-
+    const [deleted, toggleDeleted] = useToggle(false);
+    const [confirmModalOpen, toggleConfirmModalOpen] = useToggle(false);
+    
     return (
         <>
             <ListItem>
@@ -37,7 +40,9 @@ export default function FileListItem({ file }: FileListItemProps) {
                     <Typography noWrap overflow='hidden' textOverflow='ellipsis'>{file}</Typography>
                 </Tooltip>
                 <span style={{ marginLeft: 'auto' }} />
-                <IconButton onClick={() => {
+                <IconButton 
+                    disabled={deleted}
+                    onClick={() => {
                     toggle();
                     executeDownload({
                         onDownloadProgress: (progressEvent) => {
@@ -62,28 +67,27 @@ export default function FileListItem({ file }: FileListItemProps) {
                             setPercentCompleted(0);
                         });
                 }}>
-                    <DownloadForOfflineIcon />
+                    <DownloadForOfflineIcon  />
                 </IconButton>
-                <IconButton onClick={() => {
-                    executeDelete().catch((e) => {});
-                }}>
-                    <DeleteForeverIcon />
+                <IconButton 
+                    disabled={deleted}
+                    onClick={() => toggleConfirmModalOpen()}>
+                    <DeleteForeverIcon 
+                        sx={{ color: deleted ? grey[500] : red[500] }}
+                    />
                 </IconButton>
             </ListItem>
-            <Modal open={open}>
-                <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '20%' }}>
-                    <Card sx={{ padding: 8}}>
-                        <Typography variant="h6" component="h2">
-                            Downloading
-                        </Typography>
-                        <Box sx={{ display: 'flex' }}>
-                            <BorderLinearProgress  variant="determinate" value={percentCompleted} />
-                            <span style={{ width: 8 }} />
-                            <Typography>{percentCompleted}%</Typography>
-                        </Box>
-                    </Card>
-                </Box>
-            </Modal>
+            <ConfirmationModal 
+                open={confirmModalOpen} 
+                onClose={toggleConfirmModalOpen}
+                message={`Delete "${file}"?`}
+                onConfirm={() => {
+                    toggleConfirmModalOpen();
+                    toggleDeleted();
+                    executeDelete().catch((e) => {});
+                }}
+                />
+            <ProgressModal open={open} title='Downloading' progress={percentCompleted} />
         </>
     )
 } 

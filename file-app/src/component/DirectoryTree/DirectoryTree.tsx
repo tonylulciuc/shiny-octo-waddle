@@ -1,33 +1,36 @@
-import { CircularProgress, List, Paper, Typography, styled } from "@mui/material";
-import useAxios from "axios-hooks"
-import FileListItem from "../FileListItem/FileListItem";
-import { FixedSizeList, ListChildComponentProps } from 'react-window';
+import { CircularProgress, Paper, Typography, styled } from "@mui/material";
+import useAxios from "axios-hooks";
+import { useCallback, useEffect, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
+import { FixedSizeList, ListChildComponentProps } from 'react-window';
 import { useRecoilValue } from "recoil";
-import { searchState, storageSpaceState } from "../AppBar/AppBar";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { debounce } from "ts-debounce";
+import { searchState, storageSpaceState } from "../AppBar/AppBar";
+import FileListItem from "../FileListItem/FileListItem";
 
 
-const FileList = styled(FixedSizeList)(({ theme }: any) => ({
-  '.row': {
-    '&:nth-of-type(odd)': {
-      backgroundColor: theme.palette.action.hover,
+export const ZebraFileList = styled(FixedSizeList)(({ theme }: any) => ({
+    '.row': {
+        '&:nth-of-type(odd)': {
+            backgroundColor: theme.palette.action.hover,
+        },
     },
-  },
 }));
 
 function renderRow(props: ListChildComponentProps) {
     const { index, data, style } = props;
-  
+
     return (
         <div className="row" style={style}>
-            <FileListItem key={`file-${index}`} file={data[index]} />
+            <FileListItem
+                key={`file-${index}`}
+                file={data[index]}
+            />
         </div>
-        
+
     );
-  }
-  
+}
+
 
 export default function DirectoryTree() {
     const [{ loading, error, data }, reload] = useAxios('/dir/all', { manual: true });
@@ -35,10 +38,10 @@ export default function DirectoryTree() {
     const search = useRecoilValue(searchState);
     const [filteredData, setFilteredData] = useState([]);
     const applyFilter = useCallback(
-        debounce((files, find: string) => setFilteredData(files.filter((file: string) => file.toLocaleLowerCase().includes(find ?? ''))), 300), 
+        debounce((files, find: string) => setFilteredData(files.filter((file: string) => file.toLocaleLowerCase().includes(find ?? ''))), 300),
         [setFilteredData]
     );
-    
+
     useEffect(() => {
         if (!search) {
             setFilteredData(data ?? []);
@@ -53,7 +56,7 @@ export default function DirectoryTree() {
         if (used_space === 0) {
             return;
         }
-        
+
         reload()
             .catch();
     }, [used_space, reload]);
@@ -61,7 +64,7 @@ export default function DirectoryTree() {
     if (loading) {
         return (
             <div style={{ marginTop: '20%' }}>
-                    <CircularProgress size="10rem" />
+                <CircularProgress size="10rem" />
             </div>
         );
     }
@@ -71,7 +74,7 @@ export default function DirectoryTree() {
     }
 
     return (
-        <Paper style={{ 
+        <Paper style={{
             height: 'calc(100% - 64px)',
             overflowY: 'auto',
         }}>
@@ -79,17 +82,16 @@ export default function DirectoryTree() {
             {filteredData.length > 0 && (
                 <AutoSizer>
                     {({ height, width }: any) => (
-                        <FileList
-                        itemData={filteredData}
-                        itemSize={46}
-                        itemCount={filteredData.length}
-                        overscanCount={5}
-                        height={height}
-                        
-                        width={width}
+                        <ZebraFileList
+                            itemData={filteredData}
+                            itemSize={46}
+                            itemCount={filteredData.length}
+                            overscanCount={5}
+                            height={height}
+                            width={width}
                         >
                             {renderRow}
-                        </FileList>
+                        </ZebraFileList>
                     )}
                 </AutoSizer>
             )}
