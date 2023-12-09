@@ -202,7 +202,7 @@ export default function PrimarySearchAppBar() {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      executeStorageSpace().then(({ data }) => setStorageSpace(data))
+      executeStorageSpace().then(({ data }) => setStorageSpace(data)).catch(() => {})
     }, 2000);
 
     return () => {

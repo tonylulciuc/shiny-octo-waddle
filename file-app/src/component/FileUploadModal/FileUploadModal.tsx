@@ -52,12 +52,11 @@ export default function FileUploadModal(props: FileUploadProps) {
             result.resolve = resolve;
             result.reject = reject;
         });
-        const chunkSize = 10 * 1024 * 1024; // 10 MB
+        const chunkSize = 1 * 1024 * 1024; // 1 MB
         const totalChunksForFile = Math.ceil(file.size / chunkSize);
         const chunkProgress = 100 / totalChunksForFile;
         const oneChunk = (100 / files.current.length) * (1 / totalChunksForFile);
 
-        debugger;
         let chunkNumber = 0;
         let start = 0;
         let end = file.size > chunkSize ? chunkSize : file.size;
@@ -88,7 +87,7 @@ export default function FileUploadModal(props: FileUploadProps) {
                         end = start + chunkSize > file.size ? file.size : start + chunkSize;
                         uploadNextChunk();
                     })
-                    .catch(() => {
+                    .catch((e) => {
                         progress.current = progress.current + (100 / files.current.length) * ((totalChunksForFile - chunkProgress) / totalChunksForFile);
                         result.reject();
                     });
