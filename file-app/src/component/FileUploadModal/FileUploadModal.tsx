@@ -7,7 +7,7 @@ import { ZebraFileList } from "../DirectoryTree/DirectoryTree";
 import ProgressModal from "../ProgressModal/ProgressModal";
 import { atom, useRecoilState, useRecoilValue } from "recoil";
 
-
+const CHUNK_SIZE = (Number(process.env.REACT_APP_UPLOAD_CHUNK_SIZE_MB ?? 5)) * 1024 * 1024; // 5 MB
 
 export const uploadingState = atom<boolean>({
     key: 'uploadingState',
@@ -41,7 +41,7 @@ export default function FileUploadModal(props: FileUploadProps) {
     const progress = useRef<number>(0);
     const [, setUploading] = useRecoilState(uploadingState);
     const [, executeFileUpload] = useAxios({
-        url: '/upload2',
+        url: '/upload',
         method: 'POST',
         headers: {
             "Content-Type": "multipart/form-data",
@@ -60,14 +60,14 @@ export default function FileUploadModal(props: FileUploadProps) {
             result.resolve = resolve;
             result.reject = reject;
         });
-        const chunkSize = 5 * 1024 * 1024; // 5 MB
-        const totalChunksForFile = Math.ceil(file.size / chunkSize);
+        
+        const totalChunksForFile = Math.ceil(file.size / CHUNK_SIZE);
         const chunkProgress = 100 / totalChunksForFile;
         const oneChunk = (100 / files.current.length) * (1 / totalChunksForFile);
 
         let chunkNumber = 0;
         let start = 0;
-        let end = file.size > chunkSize ? chunkSize : file.size;
+        let end = file.size > CHUNK_SIZE ? CHUNK_SIZE : file.size;
 
         const uploadNextChunk = async () => {
             if (end <= file.size) {
@@ -77,7 +77,7 @@ export default function FileUploadModal(props: FileUploadProps) {
                 data.append("file", chunk);
                 data.append("chunkNumber", `${chunkNumber}`);
                 data.append("totalChunks", `${totalChunksForFile}`);
-                data.append("chunkOffset", `${chunkSize}`);
+                data.append("chunkOffset", `${CHUNK_SIZE}`);
                 data.append("originalName", file.name);
                 data.append("originalSize", `${file.size}`);
 
@@ -92,7 +92,7 @@ export default function FileUploadModal(props: FileUploadProps) {
                         progress.current = progress.current + oneChunk;
                         chunkNumber++;
                         start = end;
-                        end = start + chunkSize > file.size ? file.size : start + chunkSize;
+                        end = start + CHUNK_SIZE > file.size ? file.size : start + CHUNK_SIZE;
                         uploadNextChunk();
                     })
                     .catch((e) => {

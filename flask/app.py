@@ -177,9 +177,7 @@ def find_volumn_with_space(size):
     
     return None
 
-
-
-@app.route('/upload2', methods=['POST']) 
+@app.route('/upload', methods=['POST']) 
 @jwt_required()
 def upload2():
     file = request.files['file']
@@ -213,25 +211,6 @@ def upload2():
 
 
     return { 'msg': 'OK' }, 200
-
-@app.route('/upload', methods=['POST']) 
-@jwt_required()
-def upload_files():
-    failed_to_save = []
-
-    for key in request.files.keys(): 
-        file = request.files[key]
-        volumn = find_volumn_with_space(file.tell())
-
-        if volumn is None:
-            failed_to_save.append(file.filename)
-        else:
-            file.save(f"{volumn}/{file.filename}") 
-
-    if len(failed_to_save) > 0:
-        return f'Failed to upload: {failed_to_save}', 409
-
-    return 'OK', 200
 
 
 if __name__ == "__main__":

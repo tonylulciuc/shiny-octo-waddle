@@ -1,14 +1,13 @@
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import DownloadForOfflineIcon from '@mui/icons-material/DownloadForOffline';
-import { Checkbox, IconButton, ListItem, Tooltip, Typography } from "@mui/material";
+import { IconButton, ListItem, Tooltip, Typography } from "@mui/material";
+import { grey, red } from '@mui/material/colors';
 import { useToggle } from '@uidotdev/usehooks';
+import { AxiosProgressEvent } from 'axios';
 import useAxios from 'axios-hooks';
 import { useState } from 'react';
-import ProgressModal from '../ProgressModal/ProgressModal';
-import { green, grey, red } from '@mui/material/colors';
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
-
-
+import ProgressModal from '../ProgressModal/ProgressModal';
 
   
 export interface FileListItemProps {
@@ -18,7 +17,8 @@ export interface FileListItemProps {
 export default function FileListItem({ file }: FileListItemProps) {
     const [, executeDownload] = useAxios({
         url: `/file/${file}`,
-        method: 'GET'
+        method: 'GET',
+        responseType: 'blob'
     }, {
         manual: true
     });
@@ -29,9 +29,16 @@ export default function FileListItem({ file }: FileListItemProps) {
         manual: true 
     });
     const [open, toggle] = useToggle(false);
-    const [percentCompleted, setPercentCompleted] = useState(0.0);
     const [deleted, toggleDeleted] = useToggle(false);
     const [confirmModalOpen, toggleConfirmModalOpen] = useToggle(false);
+    const [progress, setProgress] = useState(0);
+    const handleDownloadProgress = (progressEvent: AxiosProgressEvent) => {
+        setProgress(Math.round((progressEvent.loaded * 100) /(progressEvent?.total ?? 0)));
+    };
+    const handleDownloadComplete = () => {
+        toggle();
+        setProgress(0);
+    }
     
     return (
         <>
@@ -42,16 +49,12 @@ export default function FileListItem({ file }: FileListItemProps) {
                 <span style={{ marginLeft: 'auto' }} />
                 <IconButton 
                     disabled={deleted}
-                    onClick={() => {
+                    onClick={async () => {
                     toggle();
                     executeDownload({
-                        onDownloadProgress: (progressEvent) => {
-                            setPercentCompleted(Math.round((progressEvent.loaded * 100) /(progressEvent?.total ?? 0)));
-                        }
+                        onDownloadProgress: handleDownloadProgress,
                     })
                         .then((response) => {
-                            toggle();
-                            setPercentCompleted(0);
                             const url = window.URL.createObjectURL(new Blob([response.data]));
                             const link = document.createElement('a');
                             const data = file.split('/');
@@ -62,10 +65,8 @@ export default function FileListItem({ file }: FileListItemProps) {
                             document.body.appendChild(link);
                             link.click();
                         })
-                        .catch(() => {
-                            toggle();
-                            setPercentCompleted(0);
-                        });
+                        .then(handleDownloadComplete)
+                        .catch(handleDownloadComplete);
                 }}>
                     <DownloadForOfflineIcon  />
                 </IconButton>
@@ -87,7 +88,7 @@ export default function FileListItem({ file }: FileListItemProps) {
                     executeDelete().catch((e) => {});
                 }}
                 />
-            <ProgressModal open={open} title='Downloading' progress={percentCompleted} />
+            <ProgressModal open={open} title='Downloading' progress={progress} />
         </>
     )
 } 
