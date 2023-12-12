@@ -1,4 +1,4 @@
-import { CircularProgress, Paper, Typography, styled } from "@mui/material";
+import { Box, CircularProgress, Paper, Typography } from "@mui/material";
 import useAxios from "axios-hooks";
 import { useCallback, useEffect, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
@@ -10,25 +10,14 @@ import FileListItem from "../FileListItem/FileListItem";
 import { uploadingState } from "../FileUploadModal/FileUploadModal";
 
 
-export const ZebraFileList = styled(FixedSizeList)(({ theme }: any) => ({
-    '.row': {
-        '&:nth-of-type(odd)': {
-            backgroundColor: theme.palette.action.hover,
-        },
-    },
-}));
-
 function renderRow(props: ListChildComponentProps) {
     const { index, data, style } = props;
 
     return (
-        <div className="row" style={style}>
-            <FileListItem
-                key={`file-${index}`}
-                file={data[index]}
-            />
-        </div>
-
+        <FileListItem
+            key={`file-${index}`}
+            file={data[index]}
+        />
     );
 }
 
@@ -79,23 +68,33 @@ export default function DirectoryTree() {
         <Paper style={{
             height: 'calc(100% - 64px)',
             overflowY: 'auto',
+            
         }}>
             {filteredData.length == 0 && <Typography sx={{ paddingTop: 24 }} variant="h4">No files found</Typography>}
             {filteredData.length > 0 && (
-                <AutoSizer>
-                    {({ height, width }: any) => (
-                        <ZebraFileList
-                            itemData={filteredData}
-                            itemSize={46}
-                            itemCount={filteredData.length}
-                            overscanCount={5}
-                            height={height}
-                            width={width}
-                        >
-                            {renderRow}
-                        </ZebraFileList>
-                    )}
-                </AutoSizer>
+                <Box
+                    sx={{
+                        height: '100%',
+                        '.row:nth-of-type(odd)': {
+                            backgroundColor: 'action.hover',
+                        },
+                    }}
+                >
+                    <AutoSizer>
+                        {({ height, width }: any) => (
+                            <FixedSizeList
+                                itemData={filteredData}
+                                itemSize={46}
+                                itemCount={filteredData.length}
+                                overscanCount={5}
+                                height={height}
+                                width={width}
+                            >
+                                {renderRow}
+                            </FixedSizeList>
+                        )}
+                    </AutoSizer>
+                </Box>
             )}
         </Paper>
     )

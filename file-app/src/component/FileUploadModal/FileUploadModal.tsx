@@ -1,13 +1,22 @@
-import { Box, Button, ButtonGroup, Card, ListItem, Modal, Typography } from "@mui/material";
+import { Box, Button, ButtonGroup, Card, ListItem, Modal, Typography, styled } from "@mui/material";
 import { useToggle } from "@uidotdev/usehooks";
 import useAxios from "axios-hooks";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { ListChildComponentProps } from "react-window";
-import { ZebraFileList } from "../DirectoryTree/DirectoryTree";
+import { FixedSizeList, ListChildComponentProps } from "react-window";
 import ProgressModal from "../ProgressModal/ProgressModal";
 import { atom, useRecoilState, useRecoilValue } from "recoil";
 
 const CHUNK_SIZE = (Number(process.env.REACT_APP_UPLOAD_CHUNK_SIZE_MB ?? 5)) * 1024 * 1024; // 5 MB
+
+
+const ZebraFileList = styled(FixedSizeList)(({ theme }: any) => ({
+    '.row': {
+        '&:nth-of-type(odd)': {
+            backgroundColor: theme.palette.action.hover,
+        },
+    },
+}));
+
 
 export const uploadingState = atom<boolean>({
     key: 'uploadingState',
