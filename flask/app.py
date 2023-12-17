@@ -138,7 +138,6 @@ def download_file(filename):
 @app.route('/file/<path:filename>', methods=['DELETE'])
 @jwt_required()
 def remove_file(filename):
-    print(filename)
     path_to_content = find_file(filename=filename)
     
     if path_to_content is None:
@@ -147,6 +146,21 @@ def remove_file(filename):
     os.remove(path_to_content)
 
     return 'OK', 200
+
+@app.route('/file/<path:filename>', methods=['PUT'])
+@jwt_required()
+def rename_file(filename):
+    path_to_content = find_file(filename=filename)
+    new_name = request.json.get("newName", None)
+
+    if path_to_content is None:
+        return "File not find", 404
+
+
+    # print(new_name)
+    os.rename(path_to_content, path_to_content.replace(filename, new_name))
+
+    return { 'msg': 'OK' }, 200
 
 
 @app.route('/storage/space', methods=['GET'])

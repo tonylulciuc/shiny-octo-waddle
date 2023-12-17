@@ -1,6 +1,6 @@
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import DownloadForOfflineIcon from '@mui/icons-material/DownloadForOffline';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, IconButton, ListItem, Menu, MenuItem, Tooltip, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, IconButton, ListItem, Menu, MenuItem, TextField, Tooltip, Typography } from "@mui/material";
 import { grey, red } from '@mui/material/colors';
 import { useToggle } from '@uidotdev/usehooks';
 import { AxiosProgressEvent } from 'axios';
@@ -11,12 +11,19 @@ import ProgressModal from '../ProgressModal/ProgressModal';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import VideoPlayer from '../VideoPlayer/VideoPlayer';
+import EditIcon from '@mui/icons-material/Edit';
 
 export interface FileListItemProps {
     file: string;
 }
 
 export default function FileListItem({ file }: FileListItemProps) {
+    const [, executeEdit] = useAxios({
+        url: `/file/${file}`,
+        method: 'PUT'
+    }, {
+        manual: true
+    });
     const [, executeDownload] = useAxios({
         url: `/file/${file}`,
         method: 'GET',
@@ -32,6 +39,9 @@ export default function FileListItem({ file }: FileListItemProps) {
     });
     const [open, toggle] = useToggle(false);
     const [deleted, toggleDeleted] = useToggle(false);
+    const [edit, toggleEdit] = useToggle(false);
+    const [fileName, setFileName] = useState(file);
+    const [editFile, setEditFile] = useState<string>(file);
     const [confirmModalOpen, toggleConfirmModalOpen] = useToggle(false);
     const [progress, setProgress] = useState(0);
     const handleDownloadProgress = (progressEvent: AxiosProgressEvent) => {
@@ -56,19 +66,42 @@ export default function FileListItem({ file }: FileListItemProps) {
         toggleMenuOpen();
     };
 
-
-
     return (
         <>
-            <Accordion className='row' elevation={10} style={{ margin: 0 }}>
+            <Accordion className='row' elevation={10} style={{ margin: 0 }} >
                 <AccordionSummary
                     expandIcon={<ExpandMoreIcon />}
                     aria-controls="panel1a-content"
                     id="panel1a-header"
                 >
-                    <Tooltip title={file}>
-                        <Typography noWrap overflow='hidden' textOverflow='ellipsis'>{file}</Typography>
-                    </Tooltip>
+                    {edit && 
+                        <TextField 
+                            value={editFile} 
+                            onBlur={() => toggleEdit()}
+                            onChange={(e) => setEditFile(e.target.value)} 
+                            onKeyDown={(e) => {
+                                if(e.key !== 'Enter') {
+                                    return;
+                                }
+
+                                executeEdit({
+                                    data: {
+                                        newName: editFile
+                                    }
+                                }).then(() => {
+                                    toggleEdit();
+                                    setFileName(editFile);
+                                });
+
+                                e.preventDefault()
+                             }}
+                        />
+                    }
+                    {!edit && 
+                        <Tooltip title={file}>
+                            <Typography noWrap overflow='hidden' textOverflow='ellipsis'>{fileName}</Typography>
+                        </Tooltip>
+                    }
                     <span style={{ marginLeft: 'auto' }} />
                     <IconButton
                         aria-label="show more"
@@ -100,6 +133,16 @@ export default function FileListItem({ file }: FileListItemProps) {
                 open={menuOpen}
                 onClose={handleMenuClose}
             >
+                <MenuItem
+                    disabled={deleted}
+                    onClick={() => {
+                        toggleEdit();
+                        handleMenuClose();
+                    }}
+                >
+                    <EditIcon />
+                    <Typography>Edit</Typography>
+                </MenuItem>
                 <MenuItem
                     disabled={deleted}
                     onClick={async () => {
