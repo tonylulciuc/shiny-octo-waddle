@@ -12,3 +12,5 @@ Create `.env` file in root and add env variables bellow
 |         DEBUG | Run server in debug mode                                | `true`             |
 |          REACT_APP_SERVER_ADDRESS | Address of server for app to make requests to                                    | `localhoat:8888`           |
 | REACT_APP_UPLOAD_CHUNK_SIZE_MB | Upload chunk size in MB | `5` |
+|                   SERVER_CERT | Cert pem file | `cert.pem` |
+|                   SERVER_KEY | Key pem file | `key.pem` |

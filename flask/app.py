@@ -15,7 +15,8 @@ API_USERS = [x.split(':') for x in os.getenv('API_USERS').split(',')]
 SERVER_VOLUMNS = [x.split(':') for x in os.getenv('SERVER_VOLUMNS').split(',')]
 PORT = os.getenv('SERVER_PORT')
 DEBUG = os.getenv('DEBUG') == 'true'
-
+CERT = os.getenv('SERVER_CERT') or None
+KEY = os.getenv('SERVER_KEY') or None
 # Server
 
 app = Flask(__name__)
@@ -228,4 +229,7 @@ def upload2():
 
 
 if __name__ == "__main__":
-    app.run(port=PORT, debug=DEBUG)
+    if CERT is not None and KEY is not None:
+        app.run(port=PORT, debug=DEBUG, ssl_context=(CERT, KEY))
+    else: 
+        app.run(port=PORT, debug=DEBUG)
