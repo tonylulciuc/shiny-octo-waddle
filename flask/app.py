@@ -230,6 +230,7 @@ def upload2():
 
 if __name__ == "__main__":
     if CERT is not None and KEY is not None:
+        print('launching with ssl context')
         app.run(port=PORT, debug=DEBUG, ssl_context=(CERT, KEY))
     else: 
         app.run(port=PORT, debug=DEBUG)
