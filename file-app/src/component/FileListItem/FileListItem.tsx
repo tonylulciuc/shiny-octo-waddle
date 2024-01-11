@@ -1,6 +1,8 @@
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import DownloadForOfflineIcon from '@mui/icons-material/DownloadForOffline';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, IconButton, ListItem, Menu, MenuItem, TextField, Tooltip, Typography } from "@mui/material";
+import EditIcon from '@mui/icons-material/Edit';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { AccordionSummary, Card, CardContent, IconButton, Menu, MenuItem, Paper, TextField, Tooltip, Typography } from "@mui/material";
 import { grey, red } from '@mui/material/colors';
 import { useToggle } from '@uidotdev/usehooks';
 import { AxiosProgressEvent } from 'axios';
@@ -8,10 +10,6 @@ import useAxios from 'axios-hooks';
 import { useState } from 'react';
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import ProgressModal from '../ProgressModal/ProgressModal';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import VideoPlayer from '../VideoPlayer/VideoPlayer';
-import EditIcon from '@mui/icons-material/Edit';
 
 export interface FileListItemProps {
     file: string;
@@ -68,11 +66,11 @@ export default function FileListItem({ file }: FileListItemProps) {
 
     return (
         <>
-            <Accordion className='row' elevation={10} style={{ margin: 0 }} >
-                <AccordionSummary
-                    expandIcon={<ExpandMoreIcon />}
+            <Card className='row' elevation={10} style={{ margin: 0, height: 80 }} >
+                <CardContent
                     aria-controls="panel1a-content"
                     id="panel1a-header"
+                    style={{ height: '100%',  width: '100%', display: 'flex' }}
                 >
                     {edit && 
                         <TextField 
@@ -112,11 +110,8 @@ export default function FileListItem({ file }: FileListItemProps) {
                     >
                         <MoreVertIcon />
                     </IconButton>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <VideoPlayer />
-                </AccordionDetails>
-            </Accordion>
+                </CardContent>
+            </Card>
             <Menu
                 elevation={15}
                 anchorEl={mobileMoreAnchorEl}

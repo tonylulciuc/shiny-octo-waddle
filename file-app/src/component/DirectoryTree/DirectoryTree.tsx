@@ -1,6 +1,6 @@
 import { Box, CircularProgress, Paper, Typography } from "@mui/material";
 import useAxios from "axios-hooks";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList, ListChildComponentProps } from 'react-window';
 import { useRecoilValue } from "recoil";
@@ -14,33 +14,41 @@ function renderRow(props: ListChildComponentProps) {
     const { index, data, style } = props;
 
     return (
-        <FileListItem
-            key={`file-${index}`}
-            file={data[index]}
-        />
+        <div style={style}>
+            <FileListItem
+                key={`file-${index}`}
+                file={data[index]}
+            />
+        </div>
     );
 }
 
 
 export default function DirectoryTree() {
     const [{ loading, error, data }, reload] = useAxios('/dir/all', { manual: true });
+    const sortedData = useMemo(() => data?.sort((l: string, r: string) => (l > r ? -1 : 1)), [data]);
     const { used_space } = useRecoilValue(storageSpaceState);
     const search = useRecoilValue(searchState);
     const [filteredData, setFilteredData] = useState([]);
     const uploading = useRecoilValue(uploadingState);
     const applyFilter = useCallback(
-        debounce((files, find: string) => setFilteredData(files.filter((file: string) => file.toLocaleLowerCase().includes(find ?? ''))), 300),
+        debounce((files, find: string) => {
+            const f = files.filter((file: string) => file.toLocaleLowerCase().indexOf(find ?? '') > -1);
+            setFilteredData(f);
+        },
+            300
+        ),
         [setFilteredData]
     );
 
     useEffect(() => {
         if (!search) {
-            setFilteredData(data ?? []);
+            setFilteredData(sortedData ?? []);
             return;
         }
 
-        applyFilter(data, search);
-    }, [search, data, applyFilter]);
+        applyFilter(sortedData, search);
+    }, [search, sortedData, applyFilter]);
 
 
     useEffect(() => {
@@ -83,8 +91,9 @@ export default function DirectoryTree() {
                     <AutoSizer>
                         {({ height, width }: any) => (
                             <FixedSizeList
+                                key={`key-${search}-${filteredData.length}`} 
                                 itemData={filteredData}
-                                itemSize={46}
+                                itemSize={85}
                                 itemCount={filteredData.length}
                                 overscanCount={5}
                                 height={height}
