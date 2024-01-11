@@ -8,7 +8,7 @@ import { LRUCache } from 'lru-cache';
 import Axios from 'axios'
 
 const axios = Axios.create({
-  baseURL: `http://${process.env.REACT_APP_SERVER_ADDRESS ?? 'localhost:8888'}`
+  baseURL: `${process.env.REACT_APP_SERVER_ADDRESS ?? 'http://localhost:8888'}`
 })
 
 axios.interceptors.request.use(function (config) {
